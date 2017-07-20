@@ -4,6 +4,7 @@ namespace RestApp\Request;
 
 //Exceptions
 use RestApp\Exceptions\Authorization\UnauthorizedCallException;
+use RestApp\Exceptions\Authorization\EmptyCallException;
 
 /*
  * Authorization class for handling request validation.
@@ -35,13 +36,13 @@ class Authorization {
      * Set requested api key
      * @param string $headerKey
      * @return Authorization
-     * @throws UnauthorizedCallException
+     * @throws EmptyCallException
      */
     public function setApiKey($headerKey) {
         $this->apiKey = filter_input(INPUT_SERVER, $headerKey) ? filter_input(INPUT_SERVER, $headerKey) : filter_input(INPUT_SERVER, 'HTTP_' . $headerKey);
 
-        if (!$this->apiKey || $this->apiKey === '') {
-            throw new UnauthorizedCallException('Request authorization keys have not been sent');
+        if (!$this->apiKey) {
+            throw new EmptyCallException('Use a valid REST api to make a call');
         }
         return $this;
     }
@@ -50,13 +51,13 @@ class Authorization {
      * Set requested api token
      * @param string $headerToken
      * @return Authorization
-     * @throws UnauthorizedCallException
+     * @throws EmptyCallException
      */
     public function setApiToken($headerToken) {
         $this->apiToken = filter_input(INPUT_SERVER, $headerToken) ? filter_input(INPUT_SERVER, $headerToken) : filter_input(INPUT_SERVER, 'HTTP_' . $headerToken);
 
-        if (!$this->apiToken || $this->apiToken === '') {
-            throw new UnauthorizedCallException('Request authorization keys have not been sent');
+        if (!$this->apiToken) {
+            throw new EmptyCallException('Use a valid REST api to make a call');
         }
         return $this;
     }
@@ -86,7 +87,7 @@ class Authorization {
             unset($storage);
             return true;
         } else {
-            throw new UnauthorizedCallException('API key or token does not much');
+            throw new UnauthorizedCallException('API key or token do not much');
         }
     }
 

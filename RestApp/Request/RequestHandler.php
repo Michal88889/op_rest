@@ -21,7 +21,7 @@ class RequestHandler {
     private $url = '';
 
     /**
-     * Request with default value
+     * Request type with default value 'get'
      * @var string
      */
     private $type = 'get';
@@ -60,7 +60,8 @@ class RequestHandler {
     ];
 
     /**
-     * Request list
+     * Request classes list
+     * Each Request class must inherit from HttpRequest class
      * @var mixed[] 
      */
     private $requests = [
@@ -73,18 +74,28 @@ class RequestHandler {
      */
     public function __construct() {
         try {
-            $this->checkHttpMethod();
-            $this->urlParser = new UrlParser(filter_input(INPUT_GET, 'url'));
-            $this->parseUrl();
+            $this->parseUrl()->checkHttpMethod();
         } catch (RouteException $e) {
             $e->sendResponse();
         } catch (UnauthorizedCallException $e) {
-            /**
-             * Special case: 
-             * When someone uses invalid http method the error is displayed as plain text
-             */
-            echo $e->getMessage();
+            $e->sendResponse();
         }
+    }
+
+    /**
+     * Init url parser
+     * @throws RouteException
+     * @return UrlParser
+     */
+    private function getUrlParser() {
+        if (is_null($this->urlParser) || !($this->urlParser instanceof UrlParser)) {
+            try {
+                $this->urlParser = new UrlParser(filter_input(INPUT_GET, 'url'));
+            } catch (RouteException $e) {
+                $e->sendResponse();
+            }
+        }
+        return $this->urlParser;
     }
 
     /**
@@ -94,8 +105,8 @@ class RequestHandler {
      */
     private function checkHttpMethod() {
         $method = strtolower(filter_input(INPUT_SERVER, 'REQUEST_METHOD'));
-        if ($method !== 'post') {
-            throw new UnauthorizedCallException('This operation is available only through HTTP POST request.');
+        if ($method !== $this->type) {
+            throw new UnauthorizedCallException('This operation is available only through http ' . $this->type . ' request.');
         }
         return true;
     }
@@ -110,35 +121,27 @@ class RequestHandler {
 
     /**
      * Validate and parse requested URL
-     * @return void
+     * @return RequestHandler
      */
     private function parseUrl() {
-        if (!is_null($this->urlParser) && $this->urlParser instanceof UrlParser) {
-            $this->url = $this->urlParser->getUrl();
-            $this->urlParser->searchForRoute($this->routes);
-            $this->setHandlerParams($this->urlParser->getSplitedUrl());
-        } else {
-            throw new RouteException('Requested route is invalid');
-        }
+        $this->url = $this->getUrlParser()->getUrl();
+        $this->getUrlParser()->searchForRoute($this->routes);
+        $this->setHandlerParams();
+        return $this;
     }
 
     /**
      * Set handler params
-     * @param mixed[] $splitedUrl
      * @return RequestHandler
-     * @throws RouteException
      */
-    private function setHandlerParams($splitedUrl) {
-        if (is_array($splitedUrl) && count($splitedUrl) >= 2) {
-            $this->type = $splitedUrl[0];
-            $this->method = $splitedUrl[1];
-
-            for ($i = 2; $i < count($splitedUrl); $i++) {
-                array_push($this->params, $splitedUrl[$i]);
-            }
-        } else {
-            throw new RouteException('Requested route do not exist');
+    private function setHandlerParams() {
+        $this->type = $this->getUrlParser()->getSplitedUrl(0);
+        $this->method = $this->getUrlParser()->getSplitedUrl(1);
+        // get method params if exist
+        for ($i = 2; $i < count($this->getUrlParser()->getSplitedUrl()); $i++) {
+            array_push($this->params, $this->getUrlParser()->getSplitedUrl($i));
         }
+        return $this;
     }
 
     /**
@@ -147,6 +150,7 @@ class RequestHandler {
      */
     public function executeRequest() {
         if (isset($this->requests[$this->type]) && class_exists($this->requests[$this->type])) {
+            //create request object
             $this->currentRequest = new $this->requests[$this->type];
             if (method_exists($this->currentRequest, $this->method)) {
                 $valid = true;

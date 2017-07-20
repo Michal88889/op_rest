@@ -52,6 +52,15 @@ abstract class GeneralException extends Exception {
     }
 
     /**
+     * Send string message to client
+     * @return void
+     */
+    public function sendMessage() {
+        $this->logException();
+        echo $this->composeMessage();
+    }
+
+    /**
      * Send response to client
      * @return void
      */

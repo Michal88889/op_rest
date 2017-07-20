@@ -55,11 +55,15 @@ class UrlParser {
 
     /**
      * Get splited URL array
-     * @return mixed[]
+     * @param int|null $index
+     * @return mixed[]|string
      */
-    public function getSplitedUrl() {
+    public function getSplitedUrl($index = null) {
         if (empty($this->splitedUrl)) {
-            return $this->splitUrl();
+            $this->splitUrl();
+        }
+        if (is_numeric($index)) {
+            return isset($this->splitedUrl[$index]) ? $this->splitedUrl[$index] : $this->splitedUrl;
         } else {
             return $this->splitedUrl;
         }
