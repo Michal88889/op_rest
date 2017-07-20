@@ -42,7 +42,7 @@ class Authorization {
         $this->apiKey = filter_input(INPUT_SERVER, $headerKey) ? filter_input(INPUT_SERVER, $headerKey) : filter_input(INPUT_SERVER, 'HTTP_' . $headerKey);
 
         if (!$this->apiKey) {
-            throw new EmptyCallException('Use valid REST api to make a call');
+            throw new EmptyCallException('Use a valid REST api to make a call');
         }
         return $this;
     }
@@ -57,7 +57,7 @@ class Authorization {
         $this->apiToken = filter_input(INPUT_SERVER, $headerToken) ? filter_input(INPUT_SERVER, $headerToken) : filter_input(INPUT_SERVER, 'HTTP_' . $headerToken);
 
         if (!$this->apiToken) {
-            throw new EmptyCallException('Use valid REST api to make a call');
+            throw new EmptyCallException('Use a valid REST api to make a call');
         }
         return $this;
     }
