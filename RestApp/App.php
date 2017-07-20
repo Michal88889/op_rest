@@ -10,6 +10,7 @@ use RestApp\Request\Authorization;
 use Exception;
 use RestApp\Exceptions\Database\DatabaseException;
 use RestApp\Exceptions\Request\RouteException;
+use RestApp\Exceptions\Authorization\EmptyCallException;
 use RestApp\Exceptions\Authorization\UnauthorizedCallException;
 
 /**
@@ -142,7 +143,7 @@ class App {
     /**
      * Authorize client
      * @return boolean
-     * @throws UnauthorizedCallException
+     * @throws UnauthorizedCallException, EmptyCallException
      */
     private static function authorizeClient() {
         try {
@@ -152,6 +153,11 @@ class App {
             $auth->setApiToken(self::getConfig('header_keys.token'));
             //check authorization
             self::$isAuthorized = $auth->checkAuthorization(self::getFileManager()->getStorage('api_keys'));
+        } catch (EmptyCallException $e) {
+            /**
+             * Special exception which return string message to client instead of json array
+             */
+            $e->sendMessage();
         } catch (UnauthorizedCallException $e) {
             $e->sendResponse();
         }
