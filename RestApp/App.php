@@ -84,9 +84,6 @@ class App {
         //*** Init start time ***//
         self::$startTime = microtime(true);
 
-        //*** Init request handler ***//
-        self::getRequestHandler();
-
         //*** Client request authorization ***//
         self::authorizeClient();
 
