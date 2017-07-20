@@ -74,8 +74,7 @@ class RequestHandler {
      */
     public function __construct() {
         try {
-            $this->initUrlParser()->parseUrl();
-            $this->checkHttpMethod();
+            $this->parseUrl()->checkHttpMethod();
         } catch (RouteException $e) {
             $e->sendResponse();
         } catch (UnauthorizedCallException $e) {
@@ -85,13 +84,18 @@ class RequestHandler {
 
     /**
      * Init url parser
-     * @return RequestHandler
+     * @throws RouteException
+     * @return UrlParser
      */
-    private function initUrlParser() {
+    private function getUrlParser() {
         if (is_null($this->urlParser) || !($this->urlParser instanceof UrlParser)) {
-            $this->urlParser = new UrlParser(filter_input(INPUT_GET, 'url'));
+            try {
+                $this->urlParser = new UrlParser(filter_input(INPUT_GET, 'url'));
+            } catch (RouteException $e) {
+                $e->sendResponse();
+            }
         }
-        return $this;
+        return $this->urlParser;
     }
 
     /**
@@ -117,35 +121,27 @@ class RequestHandler {
 
     /**
      * Validate and parse requested URL
-     * @return void
+     * @return RequestHandler
      */
     private function parseUrl() {
-        if (!is_null($this->urlParser) && $this->urlParser instanceof UrlParser) {
-            $this->url = $this->urlParser->getUrl();
-            $this->urlParser->searchForRoute($this->routes);
-            $this->setHandlerParams();
-        } else {
-            throw new RouteException('Requested route is invalid');
-        }
+        $this->url = $this->getUrlParser()->getUrl();
+        $this->getUrlParser()->searchForRoute($this->routes);
+        $this->setHandlerParams();
+        return $this;
     }
 
     /**
      * Set handler params
      * @return RequestHandler
-     * @throws RouteException
      */
     private function setHandlerParams() {
-        if (!is_null($this->urlParser) && $this->urlParser instanceof UrlParser) {
-            $this->type = $this->urlParser->getSplitedUrl(0);
-            $this->method = $this->urlParser->getSplitedUrl(1);
-            // get method params if exist
-            for ($i = 2; $i < count($this->urlParser->getSplitedUrl()); $i++) {
-                array_push($this->params, $this->urlParser->getSplitedUrl($i));
-            }
-            return $this;
-        } else {
-            throw new RouteException('Requested route do not exist');
+        $this->type = $this->getUrlParser()->getSplitedUrl(0);
+        $this->method = $this->getUrlParser()->getSplitedUrl(1);
+        // get method params if exist
+        for ($i = 2; $i < count($this->getUrlParser()->getSplitedUrl()); $i++) {
+            array_push($this->params, $this->getUrlParser()->getSplitedUrl($i));
         }
+        return $this;
     }
 
     /**
