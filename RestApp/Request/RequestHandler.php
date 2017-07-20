@@ -74,14 +74,24 @@ class RequestHandler {
      */
     public function __construct() {
         try {
-            $this->urlParser = new UrlParser(filter_input(INPUT_GET, 'url'));
-            $this->parseUrl();
+            $this->initUrlParser()->parseUrl();
             $this->checkHttpMethod();
         } catch (RouteException $e) {
             $e->sendResponse();
         } catch (UnauthorizedCallException $e) {
             $e->sendResponse();
         }
+    }
+
+    /**
+     * Init url parser
+     * @return RequestHandler
+     */
+    private function initUrlParser() {
+        if (is_null($this->urlParser) || !($this->urlParser instanceof UrlParser)) {
+            $this->urlParser = new UrlParser(filter_input(INPUT_GET, 'url'));
+        }
+        return $this;
     }
 
     /**
@@ -113,7 +123,7 @@ class RequestHandler {
         if (!is_null($this->urlParser) && $this->urlParser instanceof UrlParser) {
             $this->url = $this->urlParser->getUrl();
             $this->urlParser->searchForRoute($this->routes);
-            $this->setHandlerParams($this->urlParser->getSplitedUrl());
+            $this->setHandlerParams();
         } else {
             throw new RouteException('Requested route is invalid');
         }
@@ -121,18 +131,18 @@ class RequestHandler {
 
     /**
      * Set handler params
-     * @param mixed[] $splitedUrl
      * @return RequestHandler
      * @throws RouteException
      */
-    private function setHandlerParams($splitedUrl) {
-        if (is_array($splitedUrl) && count($splitedUrl) >= 2) {
-            $this->type = $splitedUrl[0];
-            $this->method = $splitedUrl[1];
+    private function setHandlerParams() {
+        if (!is_null($this->urlParser) && $this->urlParser instanceof UrlParser) {
+            $this->type = $this->urlParser->getSplitedUrl(0);
+            $this->method = $this->urlParser->getSplitedUrl(1);
             // get method params if exist
-            for ($i = 2; $i < count($splitedUrl); $i++) {
-                array_push($this->params, $splitedUrl[$i]);
+            for ($i = 2; $i < count($this->urlParser->getSplitedUrl()); $i++) {
+                array_push($this->params, $this->urlParser->getSplitedUrl($i));
             }
+            return $this;
         } else {
             throw new RouteException('Requested route do not exist');
         }
