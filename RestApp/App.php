@@ -5,6 +5,7 @@ namespace RestApp;
 use RestApp\DataProviders\Database;
 use RestApp\DataProviders\FileManager;
 use RestApp\Request\RequestHandler;
+use RestApp\Request\UrlParser;
 use RestApp\Request\Authorization;
 //Exceptions
 use Exception;
@@ -12,6 +13,7 @@ use RestApp\Exceptions\Database\DatabaseException;
 use RestApp\Exceptions\Request\RouteException;
 use RestApp\Exceptions\Authorization\EmptyCallException;
 use RestApp\Exceptions\Authorization\UnauthorizedCallException;
+use RestApp\Exceptions\File\FileException;
 
 /**
  * App engine of RestApp API
@@ -135,7 +137,8 @@ class App {
     public static function getRequestHandler() {
         if (is_null(self::$requestHandler) || !(self::$requestHandler instanceof RequestHandler)) {
             self::$requestHandler = new RequestHandler();
-            self::$url = self::$requestHandler->getUrl();
+            self::$requestHandler->setUrlParser(new UrlParser(filter_input(INPUT_GET, 'url')));
+            self::$url = self::$requestHandler->getUrlParser()->getUrl();
         }
         return self::$requestHandler;
     }
@@ -154,9 +157,7 @@ class App {
             //check authorization
             self::$isAuthorized = $auth->checkAuthorization(self::getFileManager()->getStorage('api_keys'));
         } catch (EmptyCallException $e) {
-            /**
-             * Special exception which return string message to client instead of json array
-             */
+            //Special exception which return string message to client instead of json array
             $e->sendMessage();
         } catch (UnauthorizedCallException $e) {
             $e->sendResponse();
@@ -170,7 +171,11 @@ class App {
      */
     public static function getFileManager() {
         if (is_null(self::$fileManager) || !(self::$fileManager instanceof FileManager)) {
-            self::$fileManager = new FileManager(__DIR__, self::getConfig('storage'));
+            try {
+                self::$fileManager = new FileManager(__DIR__, self::getConfig('storage'));
+            } catch (FileException $e) {
+                $e->sendResponse();
+            }
         }
         return self::$fileManager;
     }
@@ -202,6 +207,10 @@ class App {
             self::getRequestHandler()->executeRequest();
         } catch (RouteException $e) {
             $e->sendResponse();
+        } catch (UnauthorizedCallException $e) {
+            $e->sendResponse();
+        } catch (\PDOException $e) {
+            DatabaseException::capture($e)->sendResponse();
         } catch (Exception $e) {
             RouteException::capture($e)->sendResponse();
         }

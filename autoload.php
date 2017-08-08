@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Autoload function namespace classes accordingly to folder structure
+ * Autoload namespace classes accordingly to folder structure
  */
 
 spl_autoload_register(function ($class) {

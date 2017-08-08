@@ -68,20 +68,6 @@ class Authorization {
      * @return boolean
      */
     public function checkAuthorization($storage) {
-        try {
-            return $this->findAuthorizationRecord($storage);
-        } catch (UnauthorizedCallException $e) {
-            $e->sendResponse();
-        }
-    }
-
-    /**
-     * Find row in keys storage
-     * @param mixed[] $storage
-     * @return boolean
-     * @throws UnauthorizedCallException
-     */
-    private function findAuthorizationRecord($storage) {
         $find = $this->apiKey . ':' . $this->apiToken;
         if (is_array($storage) && in_array($find, $storage)) {
             unset($storage);

@@ -35,12 +35,8 @@ class FileManager {
      * @param mixed[] $storage
      */
     public function __construct($dir, $storage) {
-        try {
-            $this->setDir($dir);
-            $this->setStorageConfig($storage);
-        } catch (FileException $e) {
-            $e->sendResponse();
-        }
+        $this->setDir($dir);
+        $this->setStorageConfig($storage);
     }
 
     /**

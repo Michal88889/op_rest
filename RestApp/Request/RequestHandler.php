@@ -15,12 +15,6 @@ use RestApp\Exceptions\Authorization\UnauthorizedCallException;
 class RequestHandler {
 
     /**
-     * Incomming URL query
-     * @var string 
-     */
-    private $url = '';
-
-    /**
      * Request type with default value 'get'
      * @var string
      */
@@ -73,29 +67,26 @@ class RequestHandler {
      * @param string $url
      */
     public function __construct() {
-        try {
-            $this->parseUrl()->checkHttpMethod();
-        } catch (RouteException $e) {
-            $e->sendResponse();
-        } catch (UnauthorizedCallException $e) {
-            $e->sendResponse();
-        }
+        
     }
 
     /**
-     * Init url parser
+     * Get url parser
      * @throws RouteException
      * @return UrlParser
      */
     private function getUrlParser() {
-        if (is_null($this->urlParser) || !($this->urlParser instanceof UrlParser)) {
-            try {
-                $this->urlParser = new UrlParser(filter_input(INPUT_GET, 'url'));
-            } catch (RouteException $e) {
-                $e->sendResponse();
-            }
-        }
         return $this->urlParser;
+    }
+
+    /**
+     * Set url parser
+     * @return void
+     */
+    public function setUrlParser(UrlParser $parser) {
+        if (!is_null($parser) && ($parser instanceof UrlParser)) {
+            $this->urlParser = $parser;
+        }
     }
 
     /**
@@ -112,22 +103,14 @@ class RequestHandler {
     }
 
     /**
-     * Get route url
-     * @return string
-     */
-    public function getUrl() {
-        return $this->url;
-    }
-
-    /**
      * Validate and parse requested URL
-     * @return RequestHandler
+     * @return void
      */
     private function parseUrl() {
-        $this->url = $this->getUrlParser()->getUrl();
-        $this->getUrlParser()->searchForRoute($this->routes);
-        $this->setHandlerParams();
-        return $this;
+        if ($this->checkHttpMethod()) {
+            $this->getUrlParser()->searchForRoute($this->routes);
+            $this->setHandlerParams();
+        }
     }
 
     /**
@@ -149,6 +132,8 @@ class RequestHandler {
      * @throws RouteException
      */
     public function executeRequest() {
+        $this->parseUrl();
+        //check if parse is valid
         if (isset($this->requests[$this->type]) && class_exists($this->requests[$this->type])) {
             //create request object
             $this->currentRequest = new $this->requests[$this->type];
