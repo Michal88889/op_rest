@@ -50,7 +50,7 @@ class RequestHandler {
      */
     private $routes = [
         'get/randomPost',
-        'get/lastPosts/{0}'
+        'get/lastPosts/:num'
     ];
 
     /**
@@ -81,6 +81,7 @@ class RequestHandler {
 
     /**
      * Set url parser
+     * @param UrlParser $parser
      * @return void
      */
     public function setUrlParser(UrlParser $parser) {

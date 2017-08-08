@@ -118,7 +118,7 @@ class UrlParser {
      * @return boolean
      */
     private function isParam($string) {
-        return strpos($string, '{') === 0 && strpos($string, '}') === (strlen($string) - 1);
+        return strpos($string, ':') === 0;
     }
 
 }
