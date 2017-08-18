@@ -49,8 +49,18 @@ class RequestHandler {
      * @var mixed[]
      */
     private $routes = [
+        //get
         'get/randomPost',
-        'get/lastPosts/:num'
+        'get/lastPosts/:num',
+        'get/getOnlineUsers',
+        //post
+        'post/addPost',
+        //put
+        'put/editPost/:id',
+        'put/editUser/:id',
+        'put/banUser/:id',
+        //delete
+        'delete/removePost/:id',
     ];
 
     /**
@@ -59,23 +69,18 @@ class RequestHandler {
      * @var mixed[] 
      */
     private $requests = [
-        'get' => Get\GetRequest::class
+        'get' => Get\GetRequest::class,
+        'post' => Post\PostRequest::class,
+        'put' => Put\PutRequest::class,
+        'delete' => Delete\DeleteRequest::class,
     ];
-
-    /**
-     * Handle request by url structure
-     * @param string $url
-     */
-    public function __construct() {
-        
-    }
 
     /**
      * Get url parser
      * @throws RouteException
      * @return UrlParser
      */
-    private function getUrlParser() {
+    public function getUrlParser() {
         return $this->urlParser;
     }
 
@@ -108,14 +113,14 @@ class RequestHandler {
      * @return void
      */
     private function parseUrl() {
-        if ($this->checkHttpMethod()) {
-            $this->getUrlParser()->searchForRoute($this->routes);
-            $this->setHandlerParams();
-        }
+        $this->getUrlParser()->searchForRoute($this->routes);
     }
 
     /**
-     * Set handler params
+     * Set handler params:
+     * type = request type (get/post/put/delete)
+     * method = method name
+     * params = method parameters
      * @return RequestHandler
      */
     private function setHandlerParams() {
@@ -134,6 +139,8 @@ class RequestHandler {
      */
     public function executeRequest() {
         $this->parseUrl();
+        $this->setHandlerParams();
+        $this->checkHttpMethod();
         //check if parse is valid
         if (isset($this->requests[$this->type]) && class_exists($this->requests[$this->type])) {
             //create request object
