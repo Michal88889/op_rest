@@ -110,10 +110,11 @@ class RequestHandler {
 
     /**
      * Validate and parse requested URL
-     * @return void
+     * @return RequestHandler
      */
     private function parseUrl() {
         $this->getUrlParser()->searchForRoute($this->routes);
+        return $this;
     }
 
     /**
@@ -138,11 +139,9 @@ class RequestHandler {
      * @throws RouteException
      */
     public function executeRequest() {
-        $this->parseUrl();
-        $this->setHandlerParams();
-        $this->checkHttpMethod();
+        $this->parseUrl()->$this->setHandlerParams();
         //check if parse is valid
-        if (isset($this->requests[$this->type]) && class_exists($this->requests[$this->type])) {
+        if ($this->checkHttpMethod() && isset($this->requests[$this->type]) && class_exists($this->requests[$this->type])) {
             //create request object
             $this->currentRequest = new $this->requests[$this->type];
             if (method_exists($this->currentRequest, $this->method)) {
