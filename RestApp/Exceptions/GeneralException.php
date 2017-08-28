@@ -12,7 +12,7 @@ use RestApp\Response\HttpResponse;
  * To handle exception properly it is required to return response in every catch section.
  */
 
-abstract class GeneralException extends Exception {
+class GeneralException extends Exception {
 
     /**
      * Static message
