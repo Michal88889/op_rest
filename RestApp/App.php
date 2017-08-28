@@ -13,6 +13,7 @@ use RestApp\Exceptions\Database\DatabaseException;
 use RestApp\Exceptions\Request\RouteException;
 use RestApp\Exceptions\Authorization\EmptyCallException;
 use RestApp\Exceptions\Authorization\UnauthorizedCallException;
+use RestApp\Exceptions\Validation\ParamsException;
 use RestApp\Exceptions\File\FileException;
 
 /**
@@ -208,6 +209,8 @@ class App {
         } catch (RouteException $e) {
             $e->sendResponse();
         } catch (UnauthorizedCallException $e) {
+            $e->sendResponse();
+        } catch (ParamsException $e) {
             $e->sendResponse();
         } catch (\PDOException $e) {
             DatabaseException::capture($e)->sendResponse();
