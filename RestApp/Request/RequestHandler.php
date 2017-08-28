@@ -54,6 +54,7 @@ class RequestHandler {
         'get/lastPosts/:num',
         'get/getOnlineUsers',
         //post
+        'post/login',
         'post/addPost',
         //put
         'put/editPost/:id',
@@ -139,7 +140,7 @@ class RequestHandler {
      * @throws RouteException
      */
     public function executeRequest() {
-        $this->parseUrl()->$this->setHandlerParams();
+        $this->parseUrl()->setHandlerParams();
         //check if parse is valid
         if ($this->checkHttpMethod() && isset($this->requests[$this->type]) && class_exists($this->requests[$this->type])) {
             //create request object
