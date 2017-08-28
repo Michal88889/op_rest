@@ -4,6 +4,10 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+header('Access-Control-Allow-Origin: *');
+header("Access-Control-Allow-Headers: Content-Type, X-OP-REQUEST-KEY, X-OP-REQUEST-TOKEN");
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE'); 
+
 /* * ***************************************************
  * This application is responsible for sharing server content
  * with autohorized clients.
